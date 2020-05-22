@@ -94,8 +94,12 @@ add-apt-repository -y ppa:wireguard/wireguard
 apt-get update
 apt-get install -y wireguard
 
-# Remove dnsmasq because it will run inside the container.
+# For Ubuntu 16.x LTS. Remove dnsmasq because it will run inside the container. 
 apt-get remove -y dnsmasq
+
+# For Ubuntu 18.x LTS + Disable dnsmasq because it will run inside the container. 
+# sudo echo 'DNSStubListener=no' > /etc/systemd/resolved.conf
+# sudo systemctl restart systemd-resolved
 
 # Set DNS server.
 echo nameserver 1.1.1.1 >/etc/resolv.conf
