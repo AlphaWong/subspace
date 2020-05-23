@@ -97,9 +97,13 @@ apt-get install -y wireguard
 # For Ubuntu 16.x LTS. Remove dnsmasq because it will run inside the container. 
 apt-get remove -y dnsmasq
 
-# For Ubuntu 18.x LTS + Disable dnsmasq because it will run inside the container. 
-# sudo echo 'DNSStubListener=no' > /etc/systemd/resolved.conf
-# sudo systemctl restart systemd-resolved
+# For Ubuntu 18.x LTS + Disable systemd-resolved because it will run inside the container. 
+sudo echo 'DNSStubListener=no' > /etc/systemd/resolved.conf
+sudo systemctl restart systemd-resolved
+
+## Or disable the whole service with
+systemctl disable systemd-resolved
+systemctl stop systemd-resolved
 
 # Set DNS server.
 echo nameserver 1.1.1.1 >/etc/resolv.conf
@@ -109,7 +113,15 @@ modprobe wireguard
 modprobe iptable_nat
 modprobe ip6table_nat
 
-# Enable IP forwarding
+# Enable modules when rebooting.
+echo "wireguard" > /etc/modules-load.d/wireguard.conf
+echo "iptable_nat" > /etc/modules-load.d/iptable_nat.conf
+echo "ip6table_nat" > /etc/modules-load.d/ip6table_nat.conf
+
+# Check if systemd-modules-load service is active.
+systemctl status systemd-modules-load.service
+
+# Enable IP forwarding.
 sysctl -w net.ipv4.ip_forward=1
 sysctl -w net.ipv6.conf.all.forwarding=1
 
@@ -174,9 +186,9 @@ services:
     - SUBSPACE_NAMESERVER=1.1.1.1
     - SUBSPACE_LISTENPORT=51820
     - SUBSPACE_IPV4_POOL=10.99.97.0/24
-    - SUBSPACE_IPV6_POOL="fd00::10:97:0/64"
-    - SUBSPACE_IPV4_GW="10.99.97.1"
-    - SUBSPACE_IPV6_GW="fd00::10:97:1"
+    - SUBSPACE_IPV6_POOL=fd00::10:97:0/64
+    - SUBSPACE_IPV4_GW=10.99.97.1
+    - SUBSPACE_IPV6_GW=fd00::10:97:1
     - SUBSPACE_IPV6_NAT_ENABLED=1
    cap_add:
     - NET_ADMIN
